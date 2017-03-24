@@ -214,6 +214,54 @@ Apache httpd 2.x
     </VirtualHost>
 
 
+NGiNX 1.11.8
+-----------
+**Multiple Backends and rediriction of port numbers to custom ports**::
+**Redirects port 514 to 10514, all others remain the same port**::
+      
+      user nginx;
+      worker_processes  6;
+      events {
+          worker_connections  1024;
+      }
+      stream {
+          server {
+              listen 514 udp;
+              proxy_pass syslog_standard0;
+              proxy_bind $remote_addr transparent;
+              proxy_responses 0;
+          }
+          upstream syslog_standard0 {
+              server 192.168.1.2:10514 max_fails=1 fail_timeout=10s;
+              server 192.168.1.3:10514 max_fails=1 fail_timeout=10s;
+              server 192.168.1.4:10514 max_fails=1 fail_timeout=10s;
+          }
+          server {
+              listen 1514 udp;
+              proxy_pass syslog_standard1;
+              proxy_bind $remote_addr transparent;
+              proxy_responses 0;
+          }
+
+          upstream syslog_standard1 {
+              server 192.168.1.2:1514 max_fails=1 fail_timeout=10s;
+              server 192.168.1.3:1514 max_fails=1 fail_timeout=10s;
+              server 192.168.1.4:1514 max_fails=1 fail_timeout=10s;
+          }
+          server {
+              listen 2514 udp;
+              proxy_pass syslog_standard2;
+              proxy_bind $remote_addr transparent;
+              proxy_responses 0;
+          }
+          upstream syslog_standard2 {
+              server 10.67.1.2:2514 max_fails=1 fail_timeout=10s;
+              server 10.67.1.3:2514 max_fails=1 fail_timeout=10s;
+              server 10.67.1.4:2514 max_fails=1 fail_timeout=10s;
+          }
+
+      }
+
 HAProxy 1.6
 -----------
 
